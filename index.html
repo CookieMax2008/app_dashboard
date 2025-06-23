@@ -1,139 +1,151 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Connexion - Mon App</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #222244;
-      color: #eee;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    form {
-      background: #1e1e3f;
-      padding: 30px 40px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px #111144;
-      width: 320px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    h1 {
-      margin: 0 0 20px 0;
-      font-weight: 600;
-      text-align: center;
-    }
-    input {
-      padding: 12px 15px;
-      border-radius: 6px;
-      border: none;
-      font-size: 1rem;
-    }
-    button {
-      background: #3a43f8;
-      border: none;
-      padding: 12px 0;
-      border-radius: 6px;
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    button:hover {
-      background: #1e24c8;
-    }
-    #errorMsg {
-      color: #ff5555;
-      text-align: center;
-      min-height: 18px;
-      font-weight: 600;
-    }
-  </style>
-
-  <!-- Firebase libs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Connexion - Dashboard</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #6b73ff 0%, #000dff 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: #fff;
+  }
+  .container {
+    background: rgba(255,255,255,0.1);
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    width: 320px;
+    text-align: center;
+  }
+  h1 {
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+  input[type="email"], input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 10px 0 20px 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+  }
+  button {
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: #3a43f8;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-bottom: 10px;
+  }
+  button:hover {
+    background-color: #1e24c8;
+  }
+  .message {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    min-height: 1.2em;
+  }
+  .switch {
+    font-size: 0.85rem;
+    color: #ccc;
+    cursor: pointer;
+  }
+  .switch:hover {
+    text-decoration: underline;
+  }
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 </head>
 <body>
-
-<form id="loginForm">
-  <h1>Connexion</h1>
-  <input id="email" type="email" placeholder="Email" required autocomplete="username" />
-  <input id="password" type="password" placeholder="Mot de passe" required autocomplete="current-password" />
-  <button type="submit">Se connecter</button>
-  <div id="errorMsg"></div>
-</form>
-
+ 
+<div class="container">
+  <h1>Dashboard - Connexion</h1>
+ 
+  <input type="email" id="email" placeholder="Adresse e-mail" required />
+  <input type="password" id="password" placeholder="Mot de passe" required />
+ 
+  <button id="loginBtn">Se connecter</button>
+  <button id="signupBtn">S'inscrire</button>
+ 
+  <div class="message" id="message"></div>
+</div>
+ 
 <script>
+  // Ta config Firebase 
   const firebaseConfig = {
-    apiKey: "AIzaSy...xxxxxx",
-    authDomain: "ton-projet.firebaseapp.com",
-    projectId: "ton-projet",
-    storageBucket: "ton-projet.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdef123456"
-  };
-
+  apiKey: "AIzaSyBBEgLcDNv_9ZNaB0VIZJeNSY_pt3Ia_fw",
+  authDomain: "site-pour-me-connecter.firebaseapp.com",
+  projectId: "site-pour-me-connecter",
+  storageBucket: "site-pour-me-connecter.firebasestorage.app",
+  messagingSenderId: "348905349223",
+  appId: "1:348905349223:web:bcca114d70d3c41e08f4c2",
+  measurementId: "G-1E52LDGDSB"
+};
+ 
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
-
-  const loginForm = document.getElementById('loginForm');
+ 
   const emailInput = document.getElementById('email');
   const passwordInput = document.getElementById('password');
-  const errorMsg = document.getElementById('errorMsg');
-
-  // Empêche que la page soit visible tant que le check user n'est pas fait
-  document.body.style.visibility = 'hidden';
-
-  // Force la persistance locale (session durable)
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-    .then(() => {
-      // Vérifie si l'utilisateur est déjà connecté
-      auth.onAuthStateChanged(user => {
-        if (user) {
-          // Si connecté, redirige vers dashboard
-          window.location.href = "dashboard.html";
-        } else {
-          // Pas connecté, montre la page de login
-          document.body.style.visibility = 'visible';
-        }
-      });
-    })
-    .catch(error => {
-      console.error("Erreur persistance Firebase:", error);
-      // Montre quand même le formulaire si erreur
-      document.body.style.visibility = 'visible';
-    });
-
-  loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    errorMsg.textContent = "";
-
+  const loginBtn = document.getElementById('loginBtn');
+  const signupBtn = document.getElementById('signupBtn');
+  const messageDiv = document.getElementById('message');
+ 
+  loginBtn.addEventListener('click', () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value;
-
+ 
     if (!email || !password) {
-      errorMsg.textContent = "Veuillez remplir tous les champs.";
+      messageDiv.textContent = "Merci de remplir tous les champs.";
       return;
     }
-
+ 
     auth.signInWithEmailAndPassword(email, password)
       .then(() => {
-        // La redirection sera gérée par onAuthStateChanged, on n'en fait rien ici
+        messageDiv.style.color = 'lightgreen';
+        messageDiv.textContent = "Connexion réussie. Redirection...";
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1000);
       })
-      .catch(err => {
-        errorMsg.textContent = "Erreur : " + err.message;
+      .catch(error => {
+        messageDiv.style.color = 'salmon';
+        messageDiv.textContent = error.message;
+      });
+  });
+ 
+  signupBtn.addEventListener('click', () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+ 
+    if (!email || !password) {
+      messageDiv.textContent = "Merci de remplir tous les champs.";
+      return;
+    }
+ 
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(() => {
+        messageDiv.style.color = 'lightgreen';
+        messageDiv.textContent = "Compte créé. Vous pouvez maintenant vous connecter.";
+      })
+      .catch(error => {
+        messageDiv.style.color = 'salmon';
+        messageDiv.textContent = error.message;
       });
   });
 </script>
-
+ 
 </body>
 </html>

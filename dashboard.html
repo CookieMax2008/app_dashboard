@@ -1,40 +1,98 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Tableau de bord</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tableau de bord - Mon App</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #222244;
+    color: #eee;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    background: #1e1e3f;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  h1 {
+    margin: 0;
+    font-weight: 600;
+  }
+  #userEmail {
+    font-style: italic;
+    opacity: 0.8;
+  }
+  button#logoutBtn {
+    background: #ff5555;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s ease;
+  }
+  button#logoutBtn:hover {
+    background: #cc4444;
+  }
+  main {
+    padding: 30px;
+  }
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 </head>
 <body>
-  <h1>Tableau de bord</h1>
-  <p id="welcome">Chargement…</p>
-  <button onclick="logout()">Se déconnecter</button>
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "TA_CLE_API",
-      authDomain: "ton-projet.firebaseapp.com",
-      projectId: "ton-projet",
-    };
+<header>
+  <h1>Bienvenue sur ton tableau de bord</h1>
+  <div>
+    <span id="userEmail"></span>
+    <button id="logoutBtn">Se déconnecter</button>
+  </div>
+</header>
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+<main>
+  <p>Ici, tu pourras ajouter toutes tes fonctionnalités personnalisées selon l'utilisateur connecté.</p>
+</main>
 
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        document.getElementById('welcome').innerText = `Bienvenue, ${user.email} !`;
-      } else {
-        // Pas connecté : redirection vers login
-        window.location.href = 'index.html';
-      }
-    });
+<script>
+  // Même config Firebase que dans index.html (remplace par ta config)
+  const firebaseConfig = {
+    apiKey: "AIzaSy...xxxxxx",
+    authDomain: "ton-projet.firebaseapp.com",
+    projectId: "ton-projet",
+    storageBucket: "ton-projet.appspot.com",
+    messagingSenderId: "1234567890",
+    appId: "1:1234567890:web:abcdef123456",
+  };
 
-    function logout() {
-      auth.signOut().then(() => {
-        window.location.href = 'index.html';
-      });
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  const userEmailSpan = document.getElementById('userEmail');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      userEmailSpan.textContent = user.email;
+    } else {
+      // Pas connecté, rediriger vers login
+      window.location.href = 'index.html';
     }
-  </script>
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    auth.signOut().then(() => {
+      window.location.href = 'index.html';
+    });
+  });
+</script>
+
 </body>
 </html>

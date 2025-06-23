@@ -5,12 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Tableau de bord - Mon App</title>
 <style>
+  /* Cache la page au départ pour éviter le flash */
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #222244;
     color: #eee;
     margin: 0;
     padding: 0;
+    display: none; /* caché au départ */
   }
   header {
     background: #1e1e3f;
@@ -106,16 +108,6 @@
 </head>
 <body>
 
-<!-- Loader visible au chargement -->
-<div id="loader" style="
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: #222244;
-  display: flex; align-items: center; justify-content: center;
-  color: #eee; font-size: 1.5rem; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  z-index: 9999;">
-  Chargement...
-</div>
-
 <header>
   <h1>Tableau de bord</h1>
   <div>
@@ -153,25 +145,27 @@
   const taskForm = document.getElementById('taskForm');
   const newTaskInput = document.getElementById('newTaskInput');
   const tasksList = document.getElementById('tasksList');
-  const loader = document.getElementById('loader');
 
   let currentUser = null;
 
-  // Cache tout le contenu au départ
-  document.body.style.display = "none";
-
-  // Vérifie si user est connecté
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      currentUser = user;
-      userEmailSpan.textContent = user.email;
-      loader.style.display = "none";      // cache loader
-      document.body.style.display = "block";  // affiche contenu
-      loadTasks();
-    } else {
-      window.location.href = 'index.html';
-    }
-  });
+  // Force la persistance locale pour garder l'utilisateur connecté entre pages
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .then(() => {
+      // Observe l'état de connexion
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          currentUser = user;
+          userEmailSpan.textContent = user.email;
+          document.body.style.display = "block"; // affiche la page quand user ok
+          loadTasks();
+        } else {
+          window.location.href = 'index.html';
+        }
+      });
+    })
+    .catch(error => {
+      console.error("Erreur persistance Firebase:", error);
+    });
 
   logoutBtn.addEventListener('click', () => {
     auth.signOut().then(() => {

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Connexion Firebase</title>
+</head>
+<body>
+  <h1>Connexion / Inscription</h1>
+
+  <input id="email" type="email" placeholder="Email" />
+  <input id="password" type="password" placeholder="Mot de passe" />
+  <br />
+
+  <button onclick="register()">S'inscrire</button>
+  <button onclick="login()">Se connecter</button>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script>
+    // Remplace par ta config Firebase
+    const firebaseConfig = {
+    apiKey: "AIzaSyBBEgLcDNv_9ZNaB0VIZJeNSY_pt3Ia_fw",
+    authDomain: "site-pour-me-connecter.firebaseapp.com",
+    projectId: "site-pour-me-connecter",
+    storageBucket: "site-pour-me-connecter.firebasestorage.app",
+    messagingSenderId: "348905349223",
+    appId: "1:348905349223:web:bcca114d70d3c41e08f4c2",
+    measurementId: "G-1E52LDGDSB"
+  };
+
+    // Initialise Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    async function register() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        await auth.createUserWithEmailAndPassword(email, password);
+        alert('Compte créé avec succès !');
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        alert('Connecté ! Tu peux maintenant accéder à ton tableau de bord.');
+        // Redirige vers une autre page, par exemple dashboard.html
+        window.location.href = 'dashboard.html';
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+  </script>
+</body>
+</html>

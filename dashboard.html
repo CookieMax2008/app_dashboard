@@ -3,108 +3,19 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Tableau de bord - Mon App</title>
+<title>Tableau de bord</title>
 <style>
-  /* Cache la page au départ pour éviter le flash */
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #222244;
-    color: #eee;
-    margin: 0;
-    padding: 0;
-    display: none; /* caché au départ */
-  }
-  header {
-    background: #1e1e3f;
-    padding: 15px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  h1 {
-    margin: 0;
-    font-weight: 600;
-  }
-  #userEmail {
-    font-style: italic;
-    opacity: 0.8;
-  }
-  button#logoutBtn {
-    background: #ff5555;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    color: white;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background 0.3s ease;
-  }
-  button#logoutBtn:hover {
-    background: #cc4444;
-  }
-  main {
-    padding: 30px;
-    max-width: 600px;
-    margin: auto;
-  }
-  #taskForm {
-    display: flex;
-    margin-bottom: 20px;
-  }
-  #newTaskInput {
-    flex-grow: 1;
-    padding: 10px;
-    border-radius: 6px 0 0 6px;
-    border: none;
-    font-size: 1rem;
-  }
-  #addTaskBtn {
-    padding: 10px 20px;
-    border: none;
-    background: #3a43f8;
-    color: white;
-    cursor: pointer;
-    border-radius: 0 6px 6px 0;
-    font-weight: 600;
-  }
-  #addTaskBtn:hover {
-    background: #1e24c8;
-  }
-  ul#tasksList {
-    list-style: none;
-    padding: 0;
-  }
-  ul#tasksList li {
-    background: #333366;
-    margin-bottom: 10px;
-    padding: 12px 18px;
-    border-radius: 6px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  ul#tasksList li.done {
-    text-decoration: line-through;
-    opacity: 0.6;
-  }
-  button.taskBtn {
-    background: transparent;
-    border: none;
-    color: #ccc;
-    cursor: pointer;
-    font-size: 1.2rem;
-    margin-left: 10px;
-  }
-  button.taskBtn:hover {
-    color: white;
-  }
+  body{font-family:Segoe UI,Tahoma,Verdana,sans-serif;background:#222244;color:#eee;margin:0;display:none}
+  header{background:#1e1e3f;padding:15px 30px;display:flex;justify-content:space-between;align-items:center}
+  h1{margin:0;font-weight:600}
+  #userEmail{font-style:italic;opacity:.8}
+  #logoutBtn{background:#ff5555;border:none;padding:10px 18px;border-radius:6px;color:#fff;cursor:pointer;font-weight:600;transition:background .3s}
+  #logoutBtn:hover{background:#cc4444}
+  main{padding:30px;max-width:600px;margin:auto}
 </style>
 
-<!-- Firebase libs -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
 </head>
 <body>
 
@@ -117,128 +28,39 @@
 </header>
 
 <main>
-  <form id="taskForm">
-    <input id="newTaskInput" type="text" placeholder="Nouvelle tâche..." required />
-    <button id="addTaskBtn" type="submit">Ajouter</button>
-  </form>
-
-  <ul id="tasksList"></ul>
+  <p>Bienvenue sur votre tableau de bord personnalisé !</p>
 </main>
 
 <script>
-  // Ta config Firebase, remplace par la tienne
+  /* ——— même config que dans index.html ——— */
   const firebaseConfig = {
-    apiKey: "AIzaSy...xxxxxx",
-    authDomain: "ton-projet.firebaseapp.com",
-    projectId: "ton-projet",
-    storageBucket: "ton-projet.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdef123456"
+    apiKey: "AIzaSyBBEgLcDNv_9ZNaB0VIZJeNSY_pt3Ia_fw",
+    authDomain: "site-pour-me-connecter.firebaseapp.com",
+    projectId: "site-pour-me-connecter",
+    storageBucket: "site-pour-me-connecter.appspot.com",
+    messagingSenderId: "348905349223",
+    appId: "1:348905349223:web:bcca114d70d3c41e08f4c2",
+    measurementId: "G-1E52LDGDSB"
   };
 
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
-  const db = firebase.firestore();
 
   const userEmailSpan = document.getElementById('userEmail');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const taskForm = document.getElementById('taskForm');
-  const newTaskInput = document.getElementById('newTaskInput');
-  const tasksList = document.getElementById('tasksList');
+  const logoutBtn     = document.getElementById('logoutBtn');
 
-  let currentUser = null;
-
-  // Force la persistance locale pour garder l'utilisateur connecté entre pages
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-    .then(() => {
-      // Observe l'état de connexion
-      auth.onAuthStateChanged(user => {
-        if (user) {
-          currentUser = user;
-          userEmailSpan.textContent = user.email;
-          document.body.style.display = "block"; // affiche la page quand user ok
-          loadTasks();
-        } else {
-          window.location.href = 'index.html';
-        }
-      });
-    })
-    .catch(error => {
-      console.error("Erreur persistance Firebase:", error);
-    });
-
-  logoutBtn.addEventListener('click', () => {
-    auth.signOut().then(() => {
+  /* Persistance déjà locale, on vérifie juste l’état */
+  auth.onAuthStateChanged(user=>{
+    console.log("Auth state:", user);
+    if(user){
+      userEmailSpan.textContent = user.email;
+      document.body.style.display = 'block';   // révèle la page seulement si connecté
+    }else{
       window.location.href = 'index.html';
-    });
+    }
   });
 
-  // Charge les tâches de l'utilisateur depuis Firestore
-  function loadTasks() {
-    db.collection('tasks')
-      .where('uid', '==', currentUser.uid)
-      .orderBy('title')
-      .onSnapshot(snapshot => {
-        tasksList.innerHTML = '';
-        snapshot.forEach(doc => {
-          const task = doc.data();
-          const li = document.createElement('li');
-          li.textContent = task.title;
-          li.className = task.done ? 'done' : '';
-          li.dataset.id = doc.id;
-
-          // Boutons marquer / supprimer
-          const btnDone = document.createElement('button');
-          btnDone.textContent = task.done ? '✔️' : '✓';
-          btnDone.className = 'taskBtn';
-          btnDone.title = 'Marquer comme fait/non fait';
-          btnDone.onclick = () => toggleDone(doc.id, !task.done);
-
-          const btnDelete = document.createElement('button');
-          btnDelete.textContent = '🗑️';
-          btnDelete.className = 'taskBtn';
-          btnDelete.title = 'Supprimer tâche';
-          btnDelete.onclick = () => deleteTask(doc.id);
-
-          li.appendChild(btnDone);
-          li.appendChild(btnDelete);
-          tasksList.appendChild(li);
-        });
-      }, err => {
-        console.error("Erreur Firestore:", err);
-      });
-  }
-
-  // Ajoute une tâche dans Firestore
-  taskForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const title = newTaskInput.value.trim();
-    if (!title) return;
-
-    db.collection('tasks').add({
-      uid: currentUser.uid,
-      title: title,
-      done: false,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-      newTaskInput.value = '';
-    }).catch(err => {
-      console.error("Erreur ajout tâche:", err);
-    });
-  });
-
-  // Bascule le statut done
-  function toggleDone(id, done) {
-    db.collection('tasks').doc(id).update({ done })
-      .catch(err => console.error("Erreur toggle done:", err));
-  }
-
-  // Supprime une tâche
-  function deleteTask(id) {
-    db.collection('tasks').doc(id).delete()
-      .catch(err => console.error("Erreur suppression tâche:", err));
-  }
+  logoutBtn.onclick = () => auth.signOut().then(()=>location.href='index.html');
 </script>
-
 </body>
 </html>

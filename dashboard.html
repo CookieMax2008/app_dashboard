@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tableau de bord</title>
+</head>
+<body>
+  <h1>Tableau de bord</h1>
+  <p id="welcome">Chargement…</p>
+  <button onclick="logout()">Se déconnecter</button>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "TA_CLE_API",
+      authDomain: "ton-projet.firebaseapp.com",
+      projectId: "ton-projet",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById('welcome').innerText = `Bienvenue, ${user.email} !`;
+      } else {
+        // Pas connecté : redirection vers login
+        window.location.href = 'index.html';
+      }
+    });
+
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = 'index.html';
+      });
+    }
+  </script>
+</body>
+</html>

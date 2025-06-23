@@ -1,62 +1,151 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Connexion Firebase</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Connexion - Mon App</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #6b73ff 0%, #000dff 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: #fff;
+  }
+  .container {
+    background: rgba(255,255,255,0.1);
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    width: 320px;
+    text-align: center;
+  }
+  h1 {
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+  input[type="email"], input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 10px 0 20px 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+  }
+  button {
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: #3a43f8;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-bottom: 10px;
+  }
+  button:hover {
+    background-color: #1e24c8;
+  }
+  .message {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    min-height: 1.2em;
+  }
+  .switch {
+    font-size: 0.85rem;
+    color: #ccc;
+    cursor: pointer;
+  }
+  .switch:hover {
+    text-decoration: underline;
+  }
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 </head>
 <body>
-  <h1>Connexion / Inscription</h1>
 
-  <input id="email" type="email" placeholder="Email" />
-  <input id="password" type="password" placeholder="Mot de passe" />
-  <br />
+<div class="container">
+  <h1>Mon App - Connexion</h1>
 
-  <button onclick="register()">S'inscrire</button>
-  <button onclick="login()">Se connecter</button>
+  <input type="email" id="email" placeholder="Adresse e-mail" required />
+  <input type="password" id="password" placeholder="Mot de passe" required />
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-  <script>
-    // Remplace par ta config Firebase
-    const firebaseConfig = {
-    apiKey: "AIzaSyBBEgLcDNv_9ZNaB0VIZJeNSY_pt3Ia_fw",
-    authDomain: "site-pour-me-connecter.firebaseapp.com",
-    projectId: "site-pour-me-connecter",
-    storageBucket: "site-pour-me-connecter.firebasestorage.app",
-    messagingSenderId: "348905349223",
-    appId: "1:348905349223:web:bcca114d70d3c41e08f4c2",
-    measurementId: "G-1E52LDGDSB"
-  };
+  <button id="loginBtn">Se connecter</button>
+  <button id="signupBtn">S'inscrire</button>
 
-    // Initialise Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+  <div class="message" id="message"></div>
+</div>
 
-    async function register() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+<script>
+  // Ta config Firebase 
+  const firebaseConfig = {
+  apiKey: "AIzaSyBBEgLcDNv_9ZNaB0VIZJeNSY_pt3Ia_fw",
+  authDomain: "site-pour-me-connecter.firebaseapp.com",
+  projectId: "site-pour-me-connecter",
+  storageBucket: "site-pour-me-connecter.firebasestorage.app",
+  messagingSenderId: "348905349223",
+  appId: "1:348905349223:web:bcca114d70d3c41e08f4c2",
+  measurementId: "G-1E52LDGDSB"
+};
 
-      try {
-        await auth.createUserWithEmailAndPassword(email, password);
-        alert('Compte créé avec succès !');
-      } catch (e) {
-        alert(e.message);
-      }
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const loginBtn = document.getElementById('loginBtn');
+  const signupBtn = document.getElementById('signupBtn');
+  const messageDiv = document.getElementById('message');
+
+  loginBtn.addEventListener('click', () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!email || !password) {
+      messageDiv.textContent = "Merci de remplir tous les champs.";
+      return;
     }
 
-    async function login() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => {
+        messageDiv.style.color = 'lightgreen';
+        messageDiv.textContent = "Connexion réussie. Redirection...";
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1000);
+      })
+      .catch(error => {
+        messageDiv.style.color = 'salmon';
+        messageDiv.textContent = error.message;
+      });
+  });
 
-      try {
-        await auth.signInWithEmailAndPassword(email, password);
-        alert('Connecté ! Tu peux maintenant accéder à ton tableau de bord.');
-        // Redirige vers une autre page, par exemple dashboard.html
-        window.location.href = 'dashboard.html';
-      } catch (e) {
-        alert(e.message);
-      }
+  signupBtn.addEventListener('click', () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!email || !password) {
+      messageDiv.textContent = "Merci de remplir tous les champs.";
+      return;
     }
-  </script>
+
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(() => {
+        messageDiv.style.color = 'lightgreen';
+        messageDiv.textContent = "Compte créé. Vous pouvez maintenant vous connecter.";
+      })
+      .catch(error => {
+        messageDiv.style.color = 'salmon';
+        messageDiv.textContent = error.message;
+      });
+  });
+</script>
+
 </body>
 </html>

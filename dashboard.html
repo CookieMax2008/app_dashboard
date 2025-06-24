@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard Activités - Maxime</title>
+  <title>Dashboard avec Sidebar - Maxime</title>
   <style>
     /* Reset basique */
     * {
@@ -12,133 +12,195 @@
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-
-    body {
+    body, html {
+      height: 100%;
       background: #f4f6f8;
-      color: #333;
+      display: flex;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      overflow: hidden;
     }
 
-    header {
-      background: #2a9d8f;
+    /* Sidebar */
+    nav.sidebar {
+      background: #264653;
       color: white;
-      padding: 1.5rem 2rem;
-      font-size: 1.5rem;
-      font-weight: 700;
-      text-align: center;
-      box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
-    }
-
-    main {
-      flex: 1;
-      padding: 2rem;
-      max-width: 1200px;
-      margin: auto;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
-      padding: 1.5rem;
+      width: 240px;
+      min-width: 240px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      transition: box-shadow 0.3s ease;
+      padding: 1.5rem 1rem;
+      box-shadow: 2px 0 8px rgb(0 0 0 / 0.15);
     }
 
-    .card:hover {
-      box-shadow: 0 6px 15px rgb(0 0 0 / 0.15);
+    nav.sidebar h1 {
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: 2px;
+      user-select: none;
     }
 
-    .card h2 {
+    nav.sidebar ul {
+      list-style: none;
+      flex-grow: 1;
+    }
+
+    nav.sidebar ul li {
       margin-bottom: 1rem;
-      color: #264653;
+    }
+
+    nav.sidebar ul li button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.1rem;
+      width: 100%;
+      text-align: left;
+      padding: 0.8rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    nav.sidebar ul li button:hover,
+    nav.sidebar ul li button.active {
+      background: #2a9d8f;
+    }
+
+    /* Icônes simples avec Emoji */
+    nav.sidebar ul li button span.icon {
       font-size: 1.3rem;
     }
 
-    .card p {
+    /* Contenu principal */
+    main.content {
       flex-grow: 1;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+
+    main.content section {
+      display: none;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 3px 12px rgb(0 0 0 / 0.1);
+    }
+
+    main.content section.active {
+      display: block;
+    }
+
+    main.content section h2 {
+      margin-bottom: 1rem;
+      color: #264653;
+    }
+
+    main.content section p {
       font-size: 1rem;
+      line-height: 1.5;
       color: #555;
-      margin-bottom: 1.5rem;
     }
 
-    .btn {
-      align-self: flex-start;
-      padding: 0.5rem 1rem;
-      background: #e76f51;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      text-decoration: none;
-      font-weight: 600;
-      transition: background-color 0.3s ease;
-    }
-
-    .btn:hover {
-      background: #d65a3f;
-    }
-
-    footer {
-      background: #2a9d8f;
-      color: white;
-      text-align: center;
-      padding: 1rem 2rem;
-      font-size: 0.9rem;
-    }
-
-    @media (max-width: 500px) {
-      header, footer {
-        font-size: 1.2rem;
-        padding: 1rem;
+    /* Responsive */
+    @media (max-width: 768px) {
+      body, html {
+        flex-direction: column;
       }
-      main {
+      nav.sidebar {
+        width: 100%;
+        min-width: auto;
+        flex-direction: row;
+        padding: 0.5rem;
+        overflow-x: auto;
+      }
+      nav.sidebar h1 {
+        display: none;
+      }
+      nav.sidebar ul {
+        display: flex;
+        flex-direction: row;
+        gap: 0.5rem;
+        flex-grow: 1;
+      }
+      nav.sidebar ul li {
+        margin-bottom: 0;
+      }
+      nav.sidebar ul li button {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        border-radius: 5px;
+      }
+      main.content {
         padding: 1rem;
-        gap: 1rem;
       }
     }
   </style>
 </head>
 <body>
-  <header>
-    Tableau de bord - Mes activités
-  </header>
-  <main>
-    <section class="card">
+  <nav class="sidebar">
+    <h1>Maxime</h1>
+    <ul>
+      <li><button class="active" data-tab="projets"><span class="icon">📂</span> Projets</button></li>
+      <li><button data-tab="agenda"><span class="icon">📅</span> Agenda</button></li>
+      <li><button data-tab="notes"><span class="icon">📝</span> Notes</button></li>
+      <li><button data-tab="stats"><span class="icon">📊</span> Statistiques</button></li>
+      <li><button data-tab="messages"><span class="icon">✉️</span> Messages</button></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    <section id="projets" class="active">
       <h2>Projets en cours</h2>
       <p>Suivi des projets actifs, avancement, et tâches prioritaires.</p>
-      <a href="#" class="btn">Voir détails</a>
     </section>
-    <section class="card">
+
+    <section id="agenda">
       <h2>Agenda & Événements</h2>
       <p>Calendrier et rendez-vous importants à venir.</p>
-      <a href="#" class="btn">Accéder</a>
     </section>
-    <section class="card">
+
+    <section id="notes">
       <h2>Notes & Idées</h2>
       <p>Bloc-notes pour capturer rapidement les idées et to-do.</p>
-      <a href="#" class="btn">Ouvrir</a>
     </section>
-    <section class="card">
+
+    <section id="stats">
       <h2>Statistiques</h2>
       <p>Graphiques et indicateurs de performance.</p>
-      <a href="#" class="btn">Voir stats</a>
     </section>
-    <section class="card">
+
+    <section id="messages">
       <h2>Messages & Notifications</h2>
       <p>Boîte de réception pour suivre les communications importantes.</p>
-      <a href="#" class="btn">Consulter</a>
     </section>
   </main>
-  <footer>
-    &copy; 2025 Maxime - Tous droits réservés
-  </footer>
+
+  <script>
+    const buttons = document.querySelectorAll('nav.sidebar ul li button');
+    const sections = document.querySelectorAll('main.content section');
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Retirer active sur tous les boutons
+        buttons.forEach(btn => btn.classList.remove('active'));
+        // Ajouter active sur le bouton cliqué
+        button.classList.add('active');
+
+        const tab = button.getAttribute('data-tab');
+        // Cacher toutes les sections
+        sections.forEach(section => {
+          section.classList.remove('active');
+        });
+        // Afficher la section liée
+        const activeSection = document.getElementById(tab);
+        if (activeSection) activeSection.classList.add('active');
+      });
+    });
+  </script>
 </body>
 </html>

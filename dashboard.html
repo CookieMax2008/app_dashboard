@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard avec Sidebar Projets - Maxime</title>
   <style>
+    /* ==== STYLES EXISTANTS (inchangés) ==== */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -164,49 +165,80 @@
       transform: rotate(-45deg);
     }
 
-    /* Responsive */
-    @media (max-width: 768px) {
-      body, html {
-        flex-direction: column;
-      }
-      nav.sidebar {
-        width: 100%;
-        min-width: auto;
-        flex-direction: row;
-        padding: 0.5rem;
-        overflow-x: auto;
-        box-shadow: none;
-      }
-      nav.sidebar h1 {
-        display: none;
-      }
-      button#new-project-btn {
-        display: none;
-      }
-      ul.projects-list {
-        display: flex;
-        flex-direction: row;
-        gap: 1rem;
-        overflow-x: auto;
-        padding: 0;
-        margin: 0;
-      }
-      ul.projects-list li.project-item {
-        margin-bottom: 0;
-      }
-      ul.projects-list li.project-item > button.project-toggle {
-        font-size: 1rem;
-        padding: 0.5rem 0.8rem;
-        border-radius: 5px;
-      }
-      ul.submenu {
-        display: none !important; /* pas de sous-menu sur mobile */
-      }
-      main.content {
-        padding: 1rem;
-      }
+    /* ==== AJOUT STYLES POUR NOTES ==== */
+    /* Conteneur notes */
+    #notes-container {
+      display: flex;
+      gap: 1rem;
+      height: 400px;
+    }
+    #notes-list-container {
+      flex: 1;
+      border-right: 1px solid #ccc;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    #notes-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+    #notes-list li {
+      padding: 0.5rem 0.7rem;
+      border-bottom: 1px solid #ddd;
+      cursor: pointer;
+      user-select: none;
+    }
+    #notes-list li.active {
+      background-color: #2a9d8f;
+      color: white;
+    }
+    #add-note-btn {
+      margin-top: 1rem;
+      background: #e76f51;
+      color: white;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    #add-note-btn:hover {
+      background: #d65a3f;
+    }
+    #md-editor {
+      flex: 1;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      resize: none;
+      min-height: 180px;
+    }
+    #md-preview {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      overflow-y: auto;
+      background: #f9f9f9;
+      margin-top: 10px;
+    }
+    #editor-preview-container {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
     }
   </style>
+
+  <!-- Librairie marked.js pour le rendu Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
@@ -226,19 +258,18 @@
 </main>
 
 <script>
-  // Exemple de projets préchargés
+  // ==== DONNÉES EXISTANTES ====
   const projects = [
     { id: 'proj1', name: 'Projet Alpha' },
     { id: 'proj2', name: 'Projet Beta' },
     { id: 'proj3', name: 'Projet Gamma' }
   ];
-
   const options = ['Notes', 'Agenda', 'Statistiques', 'Messages'];
 
   const projectsList = document.getElementById('projects-list');
   const content = document.getElementById('content');
 
-  // Fonction pour créer un élément avec classe et texte
+  // Fonction utilitaire pour créer un élément avec classe et texte
   function createElement(tag, className, text) {
     const el = document.createElement(tag);
     if (className) el.className = className;
@@ -246,95 +277,228 @@
     return el;
   }
 
-  // Crée les sections de contenu dynamiquement
-  function createContentSection(projId, optionName) {
-    const sectionId = `${projId}-${optionName.toLowerCase()}`;
-    if (document.getElementById(sectionId)) return; // existe déjà
-
-    const section = createElement('section');
-    section.id = sectionId;
-    section.innerHTML = `
-      <h2>${optionName} - ${getProjectName(projId)}</h2>
-      <p>Contenu pour <strong>${optionName}</strong> du projet <strong>${getProjectName(projId)}</strong>.</p>
-    `;
-    content.appendChild(section);
+  // Récupérer nom de note active dans le localStorage
+  function getActiveNoteKey(projectId) {
+    return `notes_${projectId}_active`;
   }
 
-  // Récupérer nom projet par id
-  function getProjectName(id) {
-    const p = projects.find(pr => pr.id === id);
-    return p ? p.name : 'Projet inconnu';
+  // Récupérer contenu note depuis localStorage
+  function getNotesFromStorage(projectId) {
+    const notesStr = localStorage.getItem(`notes_${projectId}`);
+    return notesStr ? JSON.parse(notesStr) : [];
   }
 
-  // Construire la sidebar avec projets et sous-menus
-  function buildProjectsSidebar() {
-    projects.forEach(proj => {
-      const li = createElement('li', 'project-item');
-      // Bouton pour toggler sous-menu
-      const btnToggle = createElement('button', 'project-toggle');
-      btnToggle.setAttribute('aria-expanded', 'false');
-      btnToggle.innerHTML = `<span>${proj.name}</span><i class="arrow right"></i>`;
-      li.appendChild(btnToggle);
+  // Sauvegarder notes dans localStorage
+  function saveNotesToStorage(projectId, notes) {
+    localStorage.setItem(`notes_${projectId}`, JSON.stringify(notes));
+  }
 
-      // Sous-menu options
-      const submenu = createElement('ul', 'submenu');
-      options.forEach(opt => {
-        const optBtn = createElement('button', '', opt);
-        optBtn.addEventListener('click', (e) => {
-          e.stopPropagation(); // éviter de toggle le projet aussi
-          // Désactive toutes les options actives
-          document.querySelectorAll('ul.submenu button.active').forEach(btn => btn.classList.remove('active'));
-          optBtn.classList.add('active');
+  // Crée la section de contenu en fonction de l'option choisie
+  function createContentSection(projectId, option) {
+    // Nettoyer contenu actuel
+    content.innerHTML = '';
 
-          // Désactive toutes les sections actives
-          document.querySelectorAll('main.content section.active').forEach(sec => sec.classList.remove('active'));
+    // ==== Si Notes ====
+    if (option === 'Notes') {
+      // Créer conteneur principal
+      const notesContainer = createElement('div', '');
+      notesContainer.id = 'notes-container';
 
-          // Affiche la bonne section (crée si besoin)
-          createContentSection(proj.id, opt);
-          document.getElementById(`${proj.id}-${opt.toLowerCase()}`).classList.add('active');
+      // Colonne liste des notes + bouton ajouter
+      const notesListContainer = createElement('div', '');
+      notesListContainer.id = 'notes-list-container';
+
+      // Titre section
+      const title = createElement('h2', '', `Notes - ${projects.find(p => p.id === projectId).name}`);
+      content.appendChild(title);
+
+      // Liste notes
+      const notesList = createElement('ul');
+      notesList.id = 'notes-list';
+
+      notesListContainer.appendChild(notesList);
+
+      // Bouton ajouter note
+      const addNoteBtn = createElement('button');
+      addNoteBtn.id = 'add-note-btn';
+      addNoteBtn.textContent = '+ Ajouter une note';
+
+      notesListContainer.appendChild(addNoteBtn);
+
+      // Éditeur Markdown + aperçu
+      const editorPreviewContainer = createElement('div');
+      editorPreviewContainer.id = 'editor-preview-container';
+
+      const textarea = document.createElement('textarea');
+      textarea.id = 'md-editor';
+      textarea.placeholder = 'Écris ta note en Markdown ici...';
+
+      const preview = createElement('div');
+      preview.id = 'md-preview';
+      preview.innerHTML = '<em>Aperçu Markdown</em>';
+
+      editorPreviewContainer.appendChild(textarea);
+      editorPreviewContainer.appendChild(preview);
+
+      notesContainer.appendChild(notesListContainer);
+      notesContainer.appendChild(editorPreviewContainer);
+
+      content.appendChild(notesContainer);
+
+      // Charger notes depuis localStorage
+      let notes = getNotesFromStorage(projectId);
+
+      // Fonction affichage liste notes
+      function renderNotesList() {
+        notesList.innerHTML = '';
+        notes.forEach((note, idx) => {
+          const li = createElement('li', '');
+          li.textContent = note.title || `Note ${idx + 1}`;
+          li.dataset.index = idx;
+          if (idx === activeNoteIndex) li.classList.add('active');
+          notesList.appendChild(li);
         });
-        submenu.appendChild(createElement('li'));
-        submenu.lastChild.appendChild(optBtn);
-      });
-      li.appendChild(submenu);
+      }
 
-      // Toggle clic projet
-      btnToggle.addEventListener('click', () => {
-        const expanded = btnToggle.getAttribute('aria-expanded') === 'true';
-        btnToggle.setAttribute('aria-expanded', !expanded);
-        btnToggle.querySelector('.arrow').classList.toggle('down', !expanded);
-        btnToggle.querySelector('.arrow').classList.toggle('right', expanded);
+      // Afficher la note active dans l'éditeur
+      function loadActiveNote() {
+        if (notes.length === 0) {
+          textarea.value = '';
+          preview.innerHTML = '<em>Aperçu Markdown</em>';
+          return;
+        }
+        textarea.value = notes[activeNoteIndex].content || '';
+        updatePreview();
+      }
 
-        if (!expanded) {
-          submenu.classList.add('open');
-        } else {
-          submenu.classList.remove('open');
-          // Supprimer la sélection des options quand on replie
-          submenu.querySelectorAll('button.active').forEach(btn => btn.classList.remove('active'));
-          // Afficher la page par défaut
-          document.querySelectorAll('main.content section.active').forEach(sec => sec.classList.remove('active'));
-          document.getElementById('default-section').classList.add('active');
+      // Mise à jour preview Markdown
+      function updatePreview() {
+        preview.innerHTML = marked.parse(textarea.value);
+      }
+
+      // Indice note active par défaut 0
+      let activeNoteIndex = 0;
+      if (notes.length === 0) {
+        // Si aucune note, on crée une note vide automatiquement
+        notes.push({ title: 'Nouvelle note', content: '' });
+      }
+
+      renderNotesList();
+      loadActiveNote();
+
+      // Événement clic sur note dans la liste
+      notesList.addEventListener('click', e => {
+        if (e.target.tagName === 'LI') {
+          activeNoteIndex = Number(e.target.dataset.index);
+          renderNotesList();
+          loadActiveNote();
         }
       });
 
+      // Événement ajout note
+      addNoteBtn.addEventListener('click', () => {
+        notes.push({ title: `Note ${notes.length + 1}`, content: '' });
+        activeNoteIndex = notes.length - 1;
+        renderNotesList();
+        loadActiveNote();
+      });
+
+      // Événement saisie dans textarea => mise à jour note + aperçu + sauvegarde
+      textarea.addEventListener('input', () => {
+        if (notes[activeNoteIndex]) {
+          notes[activeNoteIndex].content = textarea.value;
+
+          // Mettre à jour titre par la première ligne (si existante)
+          const firstLine = textarea.value.split('\n')[0].replace(/^#*\s*/, '').trim();
+          notes[activeNoteIndex].title = firstLine || `Note ${activeNoteIndex + 1}`;
+        }
+        updatePreview();
+        renderNotesList();
+        saveNotesToStorage(projectId, notes);
+      });
+
+      return;
+    }
+
+    // ==== Pour autres options : affichage simple ====
+    const section = createElement('section', 'active');
+    const h2 = createElement('h2', `${option} - ${projects.find(p => p.id === projectId).name}`);
+    const p = createElement('p', '', `Contenu générique pour la section "${option}".`);
+
+    section.appendChild(h2);
+    section.appendChild(p);
+
+    content.appendChild(section);
+  }
+
+  // Création des projets dans la sidebar
+  function renderProjects() {
+    projectsList.innerHTML = '';
+    projects.forEach(proj => {
+      const li = createElement('li', 'project-item');
+      const btnToggle = createElement('button', 'project-toggle');
+      btnToggle.textContent = proj.name;
+
+      // Flèche
+      const arrow = createElement('span', 'arrow right');
+      btnToggle.appendChild(arrow);
+
+      // Sous-menu options
+      const submenu = createElement('ul', 'submenu');
+
+      options.forEach(opt => {
+        const optBtn = createElement('button');
+        optBtn.textContent = opt;
+        submenu.appendChild(createElement('li')).appendChild(optBtn);
+
+        // Clic sur option
+        optBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+
+          // Désactiver tous les boutons options
+          submenu.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          optBtn.classList.add('active');
+
+          // Afficher contenu
+          createContentSection(proj.id, opt);
+        });
+      });
+
+      li.appendChild(btnToggle);
+      li.appendChild(submenu);
       projectsList.appendChild(li);
+
+      // Gestion ouverture / fermeture du sous-menu
+      btnToggle.addEventListener('click', () => {
+        const isOpen = submenu.classList.contains('open');
+        // Fermer tous les sous-menus avant d'ouvrir celui-ci
+        document.querySelectorAll('ul.submenu.open').forEach(menu => {
+          menu.classList.remove('open');
+          menu.previousSibling.querySelector('.arrow').classList.replace('down', 'right');
+        });
+
+        if (!isOpen) {
+          submenu.classList.add('open');
+          arrow.classList.replace('right', 'down');
+        } else {
+          submenu.classList.remove('open');
+          arrow.classList.replace('down', 'right');
+        }
+      });
     });
   }
 
-  buildProjectsSidebar();
+  renderProjects();
 
-  // Gestion bouton nouveau projet (ajoute un projet factice ici)
+  // Gestion bouton Nouveau Projet (fonction basique pour démonstration)
   document.getElementById('new-project-btn').addEventListener('click', () => {
-    const newId = `proj${projects.length + 1}`;
-    const newName = prompt('Nom du nouveau projet :');
-    if (newName && newName.trim().length > 0) {
-      projects.push({ id: newId, name: newName.trim() });
-      // Vider et reconstruire la sidebar pour simplicité
-      projectsList.innerHTML = '';
-      buildProjectsSidebar();
+    const newName = prompt('Nom du nouveau projet ?');
+    if (newName) {
+      const newId = `proj${projects.length + 1}`;
+      projects.push({ id: newId, name: newName });
+      renderProjects();
     }
   });
 </script>
-
 </body>
 </html>

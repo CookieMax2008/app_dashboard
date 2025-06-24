@@ -19,6 +19,27 @@
       min-height: 100vh;
       overflow: hidden;
     }
+
+    /* === BOUTON PROFIL EN HAUT À DROITE === */
+    .profile-button {
+      position: fixed;
+      top: 15px;
+      right: 20px;
+      background-color: #2a9d8f;
+      color: white;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      z-index: 1000;
+      transition: background-color 0.3s ease;
+      text-decoration: none;
+    }
+    .profile-button:hover {
+      background-color: #21867a;
+    }
+
     nav.sidebar {
       background: #264653;
       color: white;
@@ -38,8 +59,6 @@
       letter-spacing: 2px;
       user-select: none;
     }
-
-    /* Bouton Nouveau Projet */
     button#new-project-btn {
       background: #e76f51;
       color: white;
@@ -55,13 +74,11 @@
     button#new-project-btn:hover {
       background: #d65a3f;
     }
-
-    /* Liste des projets */
     ul.projects-list {
       list-style: none;
       flex-grow: 1;
       overflow-y: auto;
-      padding-right: 5px; /* Pour scrollbar */
+      padding-right: 5px;
     }
     ul.projects-list li.project-item {
       margin-bottom: 0.8rem;
@@ -87,8 +104,6 @@
     ul.projects-list li.project-item > button.project-toggle.active {
       background: #2a9d8f;
     }
-
-    /* Sous-menu des options */
     ul.submenu {
       list-style: none;
       margin-top: 0.3rem;
@@ -98,7 +113,7 @@
       transition: max-height 0.3s ease;
     }
     ul.submenu.open {
-      max-height: 500px; /* assez grand pour dérouler */
+      max-height: 500px;
     }
     ul.submenu li {
       margin-bottom: 0.5rem;
@@ -120,15 +135,12 @@
       background: #1e3d59;
       color: #f1faee;
     }
-
-    /* Contenu principal */
     main.content {
       flex-grow: 1;
       padding: 2rem;
       overflow-y: auto;
       background: white;
     }
-
     main.content section {
       display: none;
       padding: 1.5rem;
@@ -147,8 +159,6 @@
       line-height: 1.5;
       color: #555;
     }
-
-    /* Petite flèche pour toggler */
     .arrow {
       border: solid white;
       border-width: 0 2.5px 2.5px 0;
@@ -164,9 +174,6 @@
     .arrow.right {
       transform: rotate(-45deg);
     }
-
-    /* ==== AJOUT STYLES POUR NOTES ==== */
-    /* Conteneur notes */
     #notes-container {
       display: flex;
       gap: 1rem;
@@ -237,268 +244,210 @@
     }
   </style>
 
-  <!-- Librairie marked.js pour le rendu Markdown -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
-<nav class="sidebar">
-  <h1>Maxime</h1>
-  <button id="new-project-btn">+ Nouveau projet</button>
-  <ul class="projects-list" id="projects-list">
-    <!-- Les projets seront insérés ici via JS -->
-  </ul>
-</nav>
+  <!-- BOUTON PROFIL -->
+  <a href="profil.html" class="profile-button">Profil</a>
 
-<main class="content" id="content">
-  <section id="default-section" class="active">
-    <h2>Bienvenue sur ton Dashboard</h2>
-    <p>Choisis un projet et une option dans la barre latérale pour commencer.</p>
-  </section>
-</main>
+  <nav class="sidebar">
+    <h1>Maxime</h1>
+    <button id="new-project-btn">+ Nouveau projet</button>
+    <ul class="projects-list" id="projects-list"></ul>
+  </nav>
 
-<script>
-  // ==== DONNÉES EXISTANTES ====
-  const projects = [
-    { id: 'proj1', name: 'Projet Alpha' },
-    { id: 'proj2', name: 'Projet Beta' },
-    { id: 'proj3', name: 'Projet Gamma' }
-  ];
-  const options = ['Notes', 'Agenda', 'Statistiques', 'Messages'];
+  <main class="content" id="content">
+    <section id="default-section" class="active">
+      <h2>Bienvenue sur ton Dashboard</h2>
+      <p>Choisis un projet et une option dans la barre latérale pour commencer.</p>
+    </section>
+  </main>
 
-  const projectsList = document.getElementById('projects-list');
-  const content = document.getElementById('content');
+  <script>
+    const projects = [
+      { id: 'proj1', name: 'Projet Alpha' },
+      { id: 'proj2', name: 'Projet Beta' },
+      { id: 'proj3', name: 'Projet Gamma' }
+    ];
+    const options = ['Notes', 'Agenda', 'Statistiques', 'Messages'];
+    const projectsList = document.getElementById('projects-list');
+    const content = document.getElementById('content');
 
-  // Fonction utilitaire pour créer un élément avec classe et texte
-  function createElement(tag, className, text) {
-    const el = document.createElement(tag);
-    if (className) el.className = className;
-    if (text) el.textContent = text;
-    return el;
-  }
+    function createElement(tag, className, text) {
+      const el = document.createElement(tag);
+      if (className) el.className = className;
+      if (text) el.textContent = text;
+      return el;
+    }
 
-  // Récupérer nom de note active dans le localStorage
-  function getActiveNoteKey(projectId) {
-    return `notes_${projectId}_active`;
-  }
+    function getNotesFromStorage(projectId) {
+      const notesStr = localStorage.getItem(`notes_${projectId}`);
+      return notesStr ? JSON.parse(notesStr) : [];
+    }
+    function saveNotesToStorage(projectId, notes) {
+      localStorage.setItem(`notes_${projectId}`, JSON.stringify(notes));
+    }
 
-  // Récupérer contenu note depuis localStorage
-  function getNotesFromStorage(projectId) {
-    const notesStr = localStorage.getItem(`notes_${projectId}`);
-    return notesStr ? JSON.parse(notesStr) : [];
-  }
+    function createContentSection(projectId, option) {
+      content.innerHTML = '';
+      if (option === 'Notes') {
+        const notesContainer = createElement('div', '');
+        notesContainer.id = 'notes-container';
 
-  // Sauvegarder notes dans localStorage
-  function saveNotesToStorage(projectId, notes) {
-    localStorage.setItem(`notes_${projectId}`, JSON.stringify(notes));
-  }
+        const notesListContainer = createElement('div', '');
+        notesListContainer.id = 'notes-list-container';
 
-  // Crée la section de contenu en fonction de l'option choisie
-  function createContentSection(projectId, option) {
-    // Nettoyer contenu actuel
-    content.innerHTML = '';
+        const title = createElement('h2', '', `Notes - ${projects.find(p => p.id === projectId).name}`);
+        content.appendChild(title);
 
-    // ==== Si Notes ====
-    if (option === 'Notes') {
-      // Créer conteneur principal
-      const notesContainer = createElement('div', '');
-      notesContainer.id = 'notes-container';
+        const notesList = createElement('ul');
+        notesList.id = 'notes-list';
+        notesListContainer.appendChild(notesList);
 
-      // Colonne liste des notes + bouton ajouter
-      const notesListContainer = createElement('div', '');
-      notesListContainer.id = 'notes-list-container';
+        const addNoteBtn = createElement('button');
+        addNoteBtn.id = 'add-note-btn';
+        addNoteBtn.textContent = '+ Ajouter une note';
+        notesListContainer.appendChild(addNoteBtn);
 
-      // Titre section
-      const title = createElement('h2', '', `Notes - ${projects.find(p => p.id === projectId).name}`);
-      content.appendChild(title);
+        const editorPreviewContainer = createElement('div');
+        editorPreviewContainer.id = 'editor-preview-container';
 
-      // Liste notes
-      const notesList = createElement('ul');
-      notesList.id = 'notes-list';
+        const textarea = document.createElement('textarea');
+        textarea.id = 'md-editor';
+        textarea.placeholder = 'Écris ta note en Markdown ici...';
 
-      notesListContainer.appendChild(notesList);
+        const preview = createElement('div');
+        preview.id = 'md-preview';
+        preview.innerHTML = '<em>Aperçu Markdown</em>';
 
-      // Bouton ajouter note
-      const addNoteBtn = createElement('button');
-      addNoteBtn.id = 'add-note-btn';
-      addNoteBtn.textContent = '+ Ajouter une note';
+        editorPreviewContainer.appendChild(textarea);
+        editorPreviewContainer.appendChild(preview);
+        notesContainer.appendChild(notesListContainer);
+        notesContainer.appendChild(editorPreviewContainer);
+        content.appendChild(notesContainer);
 
-      notesListContainer.appendChild(addNoteBtn);
-
-      // Éditeur Markdown + aperçu
-      const editorPreviewContainer = createElement('div');
-      editorPreviewContainer.id = 'editor-preview-container';
-
-      const textarea = document.createElement('textarea');
-      textarea.id = 'md-editor';
-      textarea.placeholder = 'Écris ta note en Markdown ici...';
-
-      const preview = createElement('div');
-      preview.id = 'md-preview';
-      preview.innerHTML = '<em>Aperçu Markdown</em>';
-
-      editorPreviewContainer.appendChild(textarea);
-      editorPreviewContainer.appendChild(preview);
-
-      notesContainer.appendChild(notesListContainer);
-      notesContainer.appendChild(editorPreviewContainer);
-
-      content.appendChild(notesContainer);
-
-      // Charger notes depuis localStorage
-      let notes = getNotesFromStorage(projectId);
-
-      // Fonction affichage liste notes
-      function renderNotesList() {
-        notesList.innerHTML = '';
-        notes.forEach((note, idx) => {
-          const li = createElement('li', '');
-          li.textContent = note.title || `Note ${idx + 1}`;
-          li.dataset.index = idx;
-          if (idx === activeNoteIndex) li.classList.add('active');
-          notesList.appendChild(li);
-        });
-      }
-
-      // Afficher la note active dans l'éditeur
-      function loadActiveNote() {
+        let notes = getNotesFromStorage(projectId);
+        let activeNoteIndex = 0;
         if (notes.length === 0) {
-          textarea.value = '';
-          preview.innerHTML = '<em>Aperçu Markdown</em>';
-          return;
+          notes.push({ title: 'Nouvelle note', content: '' });
         }
-        textarea.value = notes[activeNoteIndex].content || '';
-        updatePreview();
-      }
 
-      // Mise à jour preview Markdown
-      function updatePreview() {
-        preview.innerHTML = marked.parse(textarea.value);
-      }
-
-      // Indice note active par défaut 0
-      let activeNoteIndex = 0;
-      if (notes.length === 0) {
-        // Si aucune note, on crée une note vide automatiquement
-        notes.push({ title: 'Nouvelle note', content: '' });
-      }
-
-      renderNotesList();
-      loadActiveNote();
-
-      // Événement clic sur note dans la liste
-      notesList.addEventListener('click', e => {
-        if (e.target.tagName === 'LI') {
-          activeNoteIndex = Number(e.target.dataset.index);
-          renderNotesList();
-          loadActiveNote();
+        function renderNotesList() {
+          notesList.innerHTML = '';
+          notes.forEach((note, idx) => {
+            const li = createElement('li', '');
+            li.textContent = note.title || `Note ${idx + 1}`;
+            li.dataset.index = idx;
+            if (idx === activeNoteIndex) li.classList.add('active');
+            notesList.appendChild(li);
+          });
         }
-      });
 
-      // Événement ajout note
-      addNoteBtn.addEventListener('click', () => {
-        notes.push({ title: `Note ${notes.length + 1}`, content: '' });
-        activeNoteIndex = notes.length - 1;
+        function loadActiveNote() {
+          if (notes.length === 0) {
+            textarea.value = '';
+            preview.innerHTML = '<em>Aperçu Markdown</em>';
+            return;
+          }
+          textarea.value = notes[activeNoteIndex].content || '';
+          updatePreview();
+        }
+
+        function updatePreview() {
+          preview.innerHTML = marked.parse(textarea.value);
+        }
+
         renderNotesList();
         loadActiveNote();
-      });
 
-      // Événement saisie dans textarea => mise à jour note + aperçu + sauvegarde
-      textarea.addEventListener('input', () => {
-        if (notes[activeNoteIndex]) {
-          notes[activeNoteIndex].content = textarea.value;
+        notesList.addEventListener('click', e => {
+          if (e.target.tagName === 'LI') {
+            activeNoteIndex = Number(e.target.dataset.index);
+            renderNotesList();
+            loadActiveNote();
+          }
+        });
 
-          // Mettre à jour titre par la première ligne (si existante)
-          const firstLine = textarea.value.split('\n')[0].replace(/^#*\s*/, '').trim();
-          notes[activeNoteIndex].title = firstLine || `Note ${activeNoteIndex + 1}`;
-        }
-        updatePreview();
-        renderNotesList();
-        saveNotesToStorage(projectId, notes);
-      });
+        addNoteBtn.addEventListener('click', () => {
+          notes.push({ title: `Note ${notes.length + 1}`, content: '' });
+          activeNoteIndex = notes.length - 1;
+          renderNotesList();
+          loadActiveNote();
+        });
 
-      return;
+        textarea.addEventListener('input', () => {
+          if (notes[activeNoteIndex]) {
+            notes[activeNoteIndex].content = textarea.value;
+            const firstLine = textarea.value.split('\n')[0].replace(/^#*\s*/, '').trim();
+            notes[activeNoteIndex].title = firstLine || `Note ${activeNoteIndex + 1}`;
+          }
+          updatePreview();
+          renderNotesList();
+          saveNotesToStorage(projectId, notes);
+        });
+
+        return;
+      }
+
+      const section = createElement('section', 'active');
+      const h2 = createElement('h2', `${option} - ${projects.find(p => p.id === projectId).name}`);
+      const p = createElement('p', '', `Contenu générique pour la section "${option}".`);
+      section.appendChild(h2);
+      section.appendChild(p);
+      content.appendChild(section);
     }
 
-    // ==== Pour autres options : affichage simple ====
-    const section = createElement('section', 'active');
-    const h2 = createElement('h2', `${option} - ${projects.find(p => p.id === projectId).name}`);
-    const p = createElement('p', '', `Contenu générique pour la section "${option}".`);
-
-    section.appendChild(h2);
-    section.appendChild(p);
-
-    content.appendChild(section);
-  }
-
-  // Création des projets dans la sidebar
-  function renderProjects() {
-    projectsList.innerHTML = '';
-    projects.forEach(proj => {
-      const li = createElement('li', 'project-item');
-      const btnToggle = createElement('button', 'project-toggle');
-      btnToggle.textContent = proj.name;
-
-      // Flèche
-      const arrow = createElement('span', 'arrow right');
-      btnToggle.appendChild(arrow);
-
-      // Sous-menu options
-      const submenu = createElement('ul', 'submenu');
-
-      options.forEach(opt => {
-        const optBtn = createElement('button');
-        optBtn.textContent = opt;
-        submenu.appendChild(createElement('li')).appendChild(optBtn);
-
-        // Clic sur option
-        optBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-
-          // Désactiver tous les boutons options
-          submenu.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-          optBtn.classList.add('active');
-
-          // Afficher contenu
-          createContentSection(proj.id, opt);
+    function renderProjects() {
+      projectsList.innerHTML = '';
+      projects.forEach(proj => {
+        const li = createElement('li', 'project-item');
+        const btnToggle = createElement('button', 'project-toggle');
+        btnToggle.textContent = proj.name;
+        const arrow = createElement('span', 'arrow right');
+        btnToggle.appendChild(arrow);
+        const submenu = createElement('ul', 'submenu');
+        options.forEach(opt => {
+          const optBtn = createElement('button');
+          optBtn.textContent = opt;
+          submenu.appendChild(createElement('li')).appendChild(optBtn);
+          optBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            submenu.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            optBtn.classList.add('active');
+            createContentSection(proj.id, opt);
+          });
+        });
+        li.appendChild(btnToggle);
+        li.appendChild(submenu);
+        projectsList.appendChild(li);
+        btnToggle.addEventListener('click', () => {
+          const isOpen = submenu.classList.contains('open');
+          document.querySelectorAll('ul.submenu.open').forEach(menu => {
+            menu.classList.remove('open');
+            menu.previousSibling.querySelector('.arrow').classList.replace('down', 'right');
+          });
+          if (!isOpen) {
+            submenu.classList.add('open');
+            arrow.classList.replace('right', 'down');
+          } else {
+            submenu.classList.remove('open');
+            arrow.classList.replace('down', 'right');
+          }
         });
       });
+    }
 
-      li.appendChild(btnToggle);
-      li.appendChild(submenu);
-      projectsList.appendChild(li);
+    renderProjects();
 
-      // Gestion ouverture / fermeture du sous-menu
-      btnToggle.addEventListener('click', () => {
-        const isOpen = submenu.classList.contains('open');
-        // Fermer tous les sous-menus avant d'ouvrir celui-ci
-        document.querySelectorAll('ul.submenu.open').forEach(menu => {
-          menu.classList.remove('open');
-          menu.previousSibling.querySelector('.arrow').classList.replace('down', 'right');
-        });
-
-        if (!isOpen) {
-          submenu.classList.add('open');
-          arrow.classList.replace('right', 'down');
-        } else {
-          submenu.classList.remove('open');
-          arrow.classList.replace('down', 'right');
-        }
-      });
+    document.getElementById('new-project-btn').addEventListener('click', () => {
+      const newName = prompt('Nom du nouveau projet ?');
+      if (newName) {
+        const newId = `proj${projects.length + 1}`;
+        projects.push({ id: newId, name: newName });
+        renderProjects();
+      }
     });
-  }
-
-  renderProjects();
-
-  // Gestion bouton Nouveau Projet (fonction basique pour démonstration)
-  document.getElementById('new-project-btn').addEventListener('click', () => {
-    const newName = prompt('Nom du nouveau projet ?');
-    if (newName) {
-      const newId = `proj${projects.length + 1}`;
-      projects.push({ id: newId, name: newName });
-      renderProjects();
-    }
-  });
-</script>
+  </script>
 </body>
 </html>

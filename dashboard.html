@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard avec Sidebar - Maxime</title>
+  <title>Dashboard avec Sidebar Projets - Maxime</title>
   <style>
-    /* Reset basique */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -19,61 +18,106 @@
       min-height: 100vh;
       overflow: hidden;
     }
-
-    /* Sidebar */
     nav.sidebar {
       background: #264653;
       color: white;
-      width: 240px;
-      min-width: 240px;
+      width: 280px;
+      min-width: 280px;
       display: flex;
       flex-direction: column;
       padding: 1.5rem 1rem;
       box-shadow: 2px 0 8px rgb(0 0 0 / 0.15);
+      overflow-y: auto;
     }
-
     nav.sidebar h1 {
       font-size: 1.8rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
       text-align: center;
       font-weight: 700;
       letter-spacing: 2px;
       user-select: none;
     }
 
-    nav.sidebar ul {
+    /* Bouton Nouveau Projet */
+    button#new-project-btn {
+      background: #e76f51;
+      color: white;
+      border: none;
+      padding: 0.8rem 1rem;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      margin-bottom: 1.5rem;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    button#new-project-btn:hover {
+      background: #d65a3f;
+    }
+
+    /* Liste des projets */
+    ul.projects-list {
       list-style: none;
       flex-grow: 1;
+      overflow-y: auto;
+      padding-right: 5px; /* Pour scrollbar */
     }
-
-    nav.sidebar ul li {
-      margin-bottom: 1rem;
+    ul.projects-list li.project-item {
+      margin-bottom: 0.8rem;
+      border-radius: 6px;
+      user-select: none;
     }
-
-    nav.sidebar ul li button {
+    ul.projects-list li.project-item > button.project-toggle {
       background: none;
       border: none;
       color: white;
       font-size: 1.1rem;
       width: 100%;
       text-align: left;
-      padding: 0.8rem 1rem;
+      padding: 0.7rem 1rem;
       border-radius: 6px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 10px;
+      transition: background-color 0.3s ease;
     }
-
-    nav.sidebar ul li button:hover,
-    nav.sidebar ul li button.active {
+    ul.projects-list li.project-item > button.project-toggle:hover,
+    ul.projects-list li.project-item > button.project-toggle.active {
       background: #2a9d8f;
     }
 
-    /* Icônes simples avec Emoji */
-    nav.sidebar ul li button span.icon {
-      font-size: 1.3rem;
+    /* Sous-menu des options */
+    ul.submenu {
+      list-style: none;
+      margin-top: 0.3rem;
+      margin-left: 1.5rem;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    ul.submenu.open {
+      max-height: 500px; /* assez grand pour dérouler */
+    }
+    ul.submenu li {
+      margin-bottom: 0.5rem;
+    }
+    ul.submenu li button {
+      background: none;
+      border: none;
+      color: #a8dadc;
+      font-size: 1rem;
+      width: 100%;
+      text-align: left;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    ul.submenu li button:hover,
+    ul.submenu li button.active {
+      background: #1e3d59;
+      color: #f1faee;
     }
 
     /* Contenu principal */
@@ -81,29 +125,43 @@
       flex-grow: 1;
       padding: 2rem;
       overflow-y: auto;
+      background: white;
     }
 
     main.content section {
       display: none;
-      background: white;
       padding: 1.5rem;
       border-radius: 10px;
       box-shadow: 0 3px 12px rgb(0 0 0 / 0.1);
     }
-
     main.content section.active {
       display: block;
     }
-
     main.content section h2 {
       margin-bottom: 1rem;
       color: #264653;
     }
-
     main.content section p {
       font-size: 1rem;
       line-height: 1.5;
       color: #555;
+    }
+
+    /* Petite flèche pour toggler */
+    .arrow {
+      border: solid white;
+      border-width: 0 2.5px 2.5px 0;
+      display: inline-block;
+      padding: 3px;
+      margin-left: 6px;
+      transition: transform 0.3s ease;
+      user-select: none;
+    }
+    .arrow.down {
+      transform: rotate(45deg);
+    }
+    .arrow.right {
+      transform: rotate(-45deg);
     }
 
     /* Responsive */
@@ -117,23 +175,32 @@
         flex-direction: row;
         padding: 0.5rem;
         overflow-x: auto;
+        box-shadow: none;
       }
       nav.sidebar h1 {
         display: none;
       }
-      nav.sidebar ul {
+      button#new-project-btn {
+        display: none;
+      }
+      ul.projects-list {
         display: flex;
         flex-direction: row;
-        gap: 0.5rem;
-        flex-grow: 1;
+        gap: 1rem;
+        overflow-x: auto;
+        padding: 0;
+        margin: 0;
       }
-      nav.sidebar ul li {
+      ul.projects-list li.project-item {
         margin-bottom: 0;
       }
-      nav.sidebar ul li button {
-        padding: 0.5rem 1rem;
+      ul.projects-list li.project-item > button.project-toggle {
         font-size: 1rem;
+        padding: 0.5rem 0.8rem;
         border-radius: 5px;
+      }
+      ul.submenu {
+        display: none !important; /* pas de sous-menu sur mobile */
       }
       main.content {
         padding: 1rem;
@@ -142,65 +209,132 @@
   </style>
 </head>
 <body>
-  <nav class="sidebar">
-    <h1>Maxime</h1>
-    <ul>
-      <li><button class="active" data-tab="projets"><span class="icon">📂</span> Projets</button></li>
-      <li><button data-tab="agenda"><span class="icon">📅</span> Agenda</button></li>
-      <li><button data-tab="notes"><span class="icon">📝</span> Notes</button></li>
-      <li><button data-tab="stats"><span class="icon">📊</span> Statistiques</button></li>
-      <li><button data-tab="messages"><span class="icon">✉️</span> Messages</button></li>
-    </ul>
-  </nav>
 
-  <main class="content">
-    <section id="projets" class="active">
-      <h2>Projets en cours</h2>
-      <p>Suivi des projets actifs, avancement, et tâches prioritaires.</p>
-    </section>
+<nav class="sidebar">
+  <h1>Maxime</h1>
+  <button id="new-project-btn">+ Nouveau projet</button>
+  <ul class="projects-list" id="projects-list">
+    <!-- Les projets seront insérés ici via JS -->
+  </ul>
+</nav>
 
-    <section id="agenda">
-      <h2>Agenda & Événements</h2>
-      <p>Calendrier et rendez-vous importants à venir.</p>
-    </section>
+<main class="content" id="content">
+  <section id="default-section" class="active">
+    <h2>Bienvenue sur ton Dashboard</h2>
+    <p>Choisis un projet et une option dans la barre latérale pour commencer.</p>
+  </section>
+</main>
 
-    <section id="notes">
-      <h2>Notes & Idées</h2>
-      <p>Bloc-notes pour capturer rapidement les idées et to-do.</p>
-    </section>
+<script>
+  // Exemple de projets préchargés
+  const projects = [
+    { id: 'proj1', name: 'Projet Alpha' },
+    { id: 'proj2', name: 'Projet Beta' },
+    { id: 'proj3', name: 'Projet Gamma' }
+  ];
 
-    <section id="stats">
-      <h2>Statistiques</h2>
-      <p>Graphiques et indicateurs de performance.</p>
-    </section>
+  const options = ['Notes', 'Agenda', 'Statistiques', 'Messages'];
 
-    <section id="messages">
-      <h2>Messages & Notifications</h2>
-      <p>Boîte de réception pour suivre les communications importantes.</p>
-    </section>
-  </main>
+  const projectsList = document.getElementById('projects-list');
+  const content = document.getElementById('content');
 
-  <script>
-    const buttons = document.querySelectorAll('nav.sidebar ul li button');
-    const sections = document.querySelectorAll('main.content section');
+  // Fonction pour créer un élément avec classe et texte
+  function createElement(tag, className, text) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text) el.textContent = text;
+    return el;
+  }
 
-    buttons.forEach(button => {
-      button.addEventListener('click', () => {
-        // Retirer active sur tous les boutons
-        buttons.forEach(btn => btn.classList.remove('active'));
-        // Ajouter active sur le bouton cliqué
-        button.classList.add('active');
+  // Crée les sections de contenu dynamiquement
+  function createContentSection(projId, optionName) {
+    const sectionId = `${projId}-${optionName.toLowerCase()}`;
+    if (document.getElementById(sectionId)) return; // existe déjà
 
-        const tab = button.getAttribute('data-tab');
-        // Cacher toutes les sections
-        sections.forEach(section => {
-          section.classList.remove('active');
+    const section = createElement('section');
+    section.id = sectionId;
+    section.innerHTML = `
+      <h2>${optionName} - ${getProjectName(projId)}</h2>
+      <p>Contenu pour <strong>${optionName}</strong> du projet <strong>${getProjectName(projId)}</strong>.</p>
+    `;
+    content.appendChild(section);
+  }
+
+  // Récupérer nom projet par id
+  function getProjectName(id) {
+    const p = projects.find(pr => pr.id === id);
+    return p ? p.name : 'Projet inconnu';
+  }
+
+  // Construire la sidebar avec projets et sous-menus
+  function buildProjectsSidebar() {
+    projects.forEach(proj => {
+      const li = createElement('li', 'project-item');
+      // Bouton pour toggler sous-menu
+      const btnToggle = createElement('button', 'project-toggle');
+      btnToggle.setAttribute('aria-expanded', 'false');
+      btnToggle.innerHTML = `<span>${proj.name}</span><i class="arrow right"></i>`;
+      li.appendChild(btnToggle);
+
+      // Sous-menu options
+      const submenu = createElement('ul', 'submenu');
+      options.forEach(opt => {
+        const optBtn = createElement('button', '', opt);
+        optBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // éviter de toggle le projet aussi
+          // Désactive toutes les options actives
+          document.querySelectorAll('ul.submenu button.active').forEach(btn => btn.classList.remove('active'));
+          optBtn.classList.add('active');
+
+          // Désactive toutes les sections actives
+          document.querySelectorAll('main.content section.active').forEach(sec => sec.classList.remove('active'));
+
+          // Affiche la bonne section (crée si besoin)
+          createContentSection(proj.id, opt);
+          document.getElementById(`${proj.id}-${opt.toLowerCase()}`).classList.add('active');
         });
-        // Afficher la section liée
-        const activeSection = document.getElementById(tab);
-        if (activeSection) activeSection.classList.add('active');
+        submenu.appendChild(createElement('li'));
+        submenu.lastChild.appendChild(optBtn);
       });
+      li.appendChild(submenu);
+
+      // Toggle clic projet
+      btnToggle.addEventListener('click', () => {
+        const expanded = btnToggle.getAttribute('aria-expanded') === 'true';
+        btnToggle.setAttribute('aria-expanded', !expanded);
+        btnToggle.querySelector('.arrow').classList.toggle('down', !expanded);
+        btnToggle.querySelector('.arrow').classList.toggle('right', expanded);
+
+        if (!expanded) {
+          submenu.classList.add('open');
+        } else {
+          submenu.classList.remove('open');
+          // Supprimer la sélection des options quand on replie
+          submenu.querySelectorAll('button.active').forEach(btn => btn.classList.remove('active'));
+          // Afficher la page par défaut
+          document.querySelectorAll('main.content section.active').forEach(sec => sec.classList.remove('active'));
+          document.getElementById('default-section').classList.add('active');
+        }
+      });
+
+      projectsList.appendChild(li);
     });
-  </script>
+  }
+
+  buildProjectsSidebar();
+
+  // Gestion bouton nouveau projet (ajoute un projet factice ici)
+  document.getElementById('new-project-btn').addEventListener('click', () => {
+    const newId = `proj${projects.length + 1}`;
+    const newName = prompt('Nom du nouveau projet :');
+    if (newName && newName.trim().length > 0) {
+      projects.push({ id: newId, name: newName.trim() });
+      // Vider et reconstruire la sidebar pour simplicité
+      projectsList.innerHTML = '';
+      buildProjectsSidebar();
+    }
+  });
+</script>
+
 </body>
 </html>
